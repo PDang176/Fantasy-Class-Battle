@@ -10,7 +10,7 @@ public class Player : MonoBehaviour
     public int DEF;
     public int AGI;
     public int current_health;
-    public int max_health = 100;
+    public int max_health = 0;
 
     public HealthBar health_bar;
     public Text class_text;
@@ -32,14 +32,14 @@ public class Player : MonoBehaviour
         AGI_text.text = "AGI: " + AGI.ToString();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        if (Input.GetKeyDown("space"))
-		{
-            TakeDamage(20);
-		}
-    }
+    public void SetStats(string player_class, int max_health, int ATK, int DEF, int AGI)
+	{
+        this.player_class = player_class;
+        this.max_health = max_health;
+        this.ATK = ATK;
+        this.DEF = DEF;
+        this.AGI = AGI;
+	}
 
     void TakeDamage(int damage)
 	{
