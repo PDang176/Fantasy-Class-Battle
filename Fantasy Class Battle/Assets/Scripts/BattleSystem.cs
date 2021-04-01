@@ -1,34 +1,93 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.IO;
-using System.Linq;
+using UnityEngine.UI;
 
-public enum BattleState { START, PLAYER_ONE, PLAYER_TWO, PLAYER_ONE_WIN, PLAYER_TWO_WIN } 
+public enum BattleState { START, PLAYER_ONE_TURN, PLAYER_TWO_TURN, PLAYER_ONE_WIN, PLAYER_TWO_WIN } 
 
 public class BattleSystem : MonoBehaviour
 {
-    public BattleState state;
+    public Transform playerOneLoc;
+    public Transform playerTwoLoc;
 
-    public Player playerOne;
-    public Player playerTwo;
+    Player playerOne;
+    Player playerTwo;
+
+    public Image borderOne;
+    public Image borderTwo;
+
+    public BattleState state;
+    public int round;
 
     // Start is called before the first frame update
     void Start()
     {
         state = BattleState.START;
+        round = 2;
         SetupBattle("Knight", "Assassin");
     }
 
     void SetupBattle(string p1, string p2)
     {
-        string playerOnePath = Application.streamingAssetsPath + "/Classes/" + p1 + ".txt";
-        string playerTwoPath = Application.streamingAssetsPath + "/Classes/" + p2 + ".txt";
+        GameObject playerOneGo = Instantiate((GameObject)Resources.Load(p1), playerOneLoc);
+        playerOne = playerOneGo.GetComponent<Player>();
 
-        List<string> p1FileLines = File.ReadAllLines(playerOnePath).ToList();
-        playerOne.SetStats(p1FileLines[0], int.Parse(p1FileLines[1]), int.Parse(p1FileLines[2]), int.Parse(p1FileLines[3]), int.Parse(p1FileLines[4]));
+        GameObject playerTwoGo = Instantiate((GameObject)Resources.Load(p2), playerTwoLoc);
+        playerTwo = playerTwoGo.GetComponent<Player>();
 
-        List<string> p2FileLines = File.ReadAllLines(playerTwoPath).ToList();
-        playerTwo.SetStats(p2FileLines[0], int.Parse(p2FileLines[1]), int.Parse(p2FileLines[2]), int.Parse(p2FileLines[3]), int.Parse(p2FileLines[4]));
+        playerOne.SetEnemy(playerTwo);
+        playerTwo.SetEnemy(playerOne);
+
+        playerOne.SetBattleSystem(this);
+        playerTwo.SetBattleSystem(this);
+
+        state = CheckTurn();
     }
+
+    BattleState CheckTurn()
+	{
+        round = 2;
+
+        if(playerOne.AGI > playerTwo.AGI)
+		{
+            borderOne.color = Color.yellow;
+            borderTwo.color = Color.blue;
+            playerOne.EnableButtons();
+            playerTwo.DisableButtons();
+            return BattleState.PLAYER_ONE_TURN;
+		}
+		else
+		{
+            borderOne.color = Color.blue;
+            borderTwo.color = Color.yellow;
+            playerOne.DisableButtons();
+            playerTwo.EnableButtons();
+            return BattleState.PLAYER_TWO_TURN;
+		}
+	}
+
+    public void EndTurn()
+	{
+        round--;
+        if(round <= 0)
+		{
+            state = CheckTurn();
+		}
+		else if(state == BattleState.PLAYER_ONE_TURN)
+		{
+            borderOne.color = Color.white;
+            borderTwo.color = Color.yellow;
+            playerOne.DisableButtons();
+            playerTwo.EnableButtons();
+            state = BattleState.PLAYER_TWO_TURN;
+		}
+        else if(state == BattleState.PLAYER_TWO_TURN)
+		{
+            borderOne.color = Color.yellow;
+            borderTwo.color = Color.white;
+            playerOne.EnableButtons();
+            playerTwo.DisableButtons();
+            state = BattleState.PLAYER_ONE_TURN;
+		}
+	}
 }
